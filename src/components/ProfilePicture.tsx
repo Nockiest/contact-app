@@ -9,7 +9,7 @@ type ProfilePictureProps = {
 
 const ProfilePicture: React.FC<ProfilePictureProps> = ({ photoURL }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-
+  const placeholderUrl = '../assets/placeholder.png'
   useEffect(() => {
     const fetchImage = async () => {
       // Check if photoURL is a Firebase storage path
@@ -37,18 +37,11 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ photoURL }) => {
     fetchImage();
   }, [photoURL]);
 
-  if (!imageUrl) {
-    // Render placeholder image or alternative content if imageUrl is null
-    return (
-      <div>
-        {/* Render placeholder image or alternative content */}
-      </div>
-    );
-  }
 
   return (
     <div>
-        <p> {photoURL}</p>
+
+
       <div
         style={{
           border: "1px solid",
@@ -59,7 +52,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ photoURL }) => {
         }}
       >
         <img
-          src={imageUrl}
+          src={imageUrl!==null? imageUrl:'../assets/placeholder.png'}
           alt="Contact"
           style={{
             width: "100%",
@@ -67,7 +60,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ photoURL }) => {
             objectFit: "cover"
           }}
         />
-      </div>
+       </div>
     </div>
   );
 };

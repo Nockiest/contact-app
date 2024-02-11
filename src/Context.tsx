@@ -25,30 +25,26 @@ export const ContactContext = createContext<ContactContextType>({
 });
 
 export const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [query, setQuery] = useState<string>('')
-  const [chosenContactId, setChosenId] =  useState<Id | null>(null);
-  // const [ trigger, setTrigger] = useState(0); // Add this line
+  const [query, setQuery] = useState<string>('');
+  const [chosenContactId, setChosenId] = useState<Id | null>(null);
+  const [contacts, setContacts] = useState<Array<Contact>>([]);
 
-
-
-  const [contacts, setContacts] = useState<Array<Contact>>([ ]);  //...mockContacts
-
-  // Call the function to add mock contacts to Firestore
   useEffect(() => {
     const fetchDataAndAddMockContacts = async () => {
       try {
-
         const fetchContacts = async () => {
           try {
             const contactsCollection = collection(db, 'Contacts');
             const contactsSnapshot = await getDocs(contactsCollection);
-            const contactsData = contactsSnapshot.docs.map(doc => doc.data() as Contact);
+            const contactsData = contactsSnapshot.docs.map(doc => {
+              const contactData = doc.data() as Contact;
+              return { ...contactData, id: doc.id }; // Add the document ID to the contact object
+            });
             setContacts(contactsData);
           } catch (error) {
             console.error('Error fetching contacts:', error);
           }
         };
-
 
         await fetchContacts();
       } catch (error) {
@@ -60,11 +56,12 @@ export const ContextProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   return (
-    <ContactContext.Provider value={{ chosenContactId , setChosenId, contacts, setContacts, query, setQuery }}>
+    <ContactContext.Provider value={{ chosenContactId, setChosenId, contacts, setContacts, query, setQuery }}>
       {children}
     </ContactContext.Provider>
   );
 };
+
 export const useContactContext = (): ContactContextType => {
   const context = useContext(ContactContext);
   if (!context) {
