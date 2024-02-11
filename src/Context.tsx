@@ -1,5 +1,5 @@
 import { useContext, createContext, ReactNode, useState, useRef, useEffect } from "react";
-import { Contact } from "./types/types";
+import { Contact, Id } from "./types/types";
 // import {v4 as uuidv4} from 'uuid';
 // import mockContacts from './mockContacts'
 import { db } from './firebase'; // Import Firestore from your firebase.js file
@@ -7,8 +7,8 @@ import { db } from './firebase'; // Import Firestore from your firebase.js file
 import {   collection, getDocs  } from 'firebase/firestore'; // Import necessary Firestore functions
 
 interface ContactContextType {
-  chosenContactRef:  Contact | null;
-  setChosenContact: (value: Contact | null) => void;
+  chosenContactId:  Id|null;
+  setChosenId: (value: Id | null) => void;
   contacts: Array<Contact>;
   setContacts: (value: any) => void;
   query: string;
@@ -16,8 +16,8 @@ interface ContactContextType {
 }
 
 export const ContactContext = createContext<ContactContextType>({
-  chosenContactRef: null,
-  setChosenContact: () => {},
+  chosenContactId: null,
+  setChosenId: () => {},
   contacts: [],
   setContacts: () => {},
   query: '',
@@ -26,14 +26,8 @@ export const ContactContext = createContext<ContactContextType>({
 
 export const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [query, setQuery] = useState<string>('')
-  const chosenContactRef = useRef<Contact | null>(null);
-  const [ trigger, setTrigger] = useState(0); // Add this line
-  const setChosenContact = (contact: Contact | null) => {
-    chosenContactRef.current = contact;
-    setTrigger(prev => prev + 1);
-    console.log('newContactREf',  chosenContactRef.current)
-  };
-
+  const [chosenContactId, setChosenId] =  useState<Id | null>(null);
+  // const [ trigger, setTrigger] = useState(0); // Add this line
 
 
 
@@ -66,12 +60,11 @@ export const ContextProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   return (
-    <ContactContext.Provider value={{ chosenContactRef: chosenContactRef.current, setChosenContact, contacts, setContacts, query, setQuery }}>
+    <ContactContext.Provider value={{ chosenContactId , setChosenId, contacts, setContacts, query, setQuery }}>
       {children}
     </ContactContext.Provider>
   );
 };
-
 export const useContactContext = (): ContactContextType => {
   const context = useContext(ContactContext);
   if (!context) {

@@ -13,7 +13,7 @@ import mockContacts from "../mockContacts";
 import { db } from "../firebase";
 const ContactList = () => {
 
-  const { contacts,  setContacts, query, setChosenContact } = useContactContext();
+  const { contacts,  setContacts, query, setChosenId } = useContactContext();
   const [showContacts, setShowContacts] = useState<boolean>(true);
   const [selectedLetter, setSelectedLetter] = useState<string>("");
   const contactPreviewRef = useRef<HTMLDivElement>(null);
@@ -119,7 +119,7 @@ const sortedContacts = [...contacts]
               <div
                 className={contact.name}
                 key={contact.name}
-                onClick={() => {setChosenContact(contact)} }
+                onClick={() => {setChosenId(contact.id)} }
                 style={{cursor:'pointer'}}
               >
                 <img className={"button-icon"} src={idCard} alt="id icon" />

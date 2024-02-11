@@ -11,5 +11,7 @@ export type Contact = {
       state: string|null;
       postalCode: string|null;
     };
-    id: string | number;
-  };
+    id:Id
+  }   ;
+
+export  type Id = string| number

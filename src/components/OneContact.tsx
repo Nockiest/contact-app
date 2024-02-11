@@ -1,29 +1,29 @@
 import { useState } from "react";
 import { useContactContext } from "../Context";
 import xMarkIcon from "../assets/xmark.svg";
-// import sear from "../assets/cross.svg";
 import ProfilePicture from "./ProfilePicture";
 import ContactEditor from "./ContactEditor";
 import TrashIcon from "../assets/trash.svg";
 import { deleteObjectFromArray } from "../utils";
+import { Id } from "../types/types";
 const OneContact = () => {
-  const { setChosenContact, chosenContactRef, setContacts, contacts } =
+  const { setChosenId,  chosenContactId, setContacts, contacts } =
     useContactContext();
   const [editMode, setEditMode] = useState<boolean>(false);
 
-  const deleteContact = (id: number | string) => {
-    if (chosenContactRef) {
+  const deleteContact = (id: Id) => {
+    if (chosenContactId) {
       setContacts(deleteObjectFromArray(id, contacts));
-      setChosenContact(null);
+      setChosenId(null);
     }
   };
-
+  const chosenContact = contacts.find(obj => obj.id === chosenContactId);
   return (
     <div style={{ width: "66%" }}>
-      {chosenContactRef !== null ? (
+      {chosenContactId&& chosenContact? (
         editMode ? (
           <ContactEditor
-            initialContact={chosenContactRef}
+            initialContact={chosenContact}
             setEditMode={setEditMode}
           />
         ) : (
@@ -36,14 +36,14 @@ const OneContact = () => {
               }}
             >
               <img
-                onClick={() => deleteContact(chosenContactRef.id)}
+                onClick={() => deleteContact(chosenContactId)}
                 className={"button-icon"}
                 src={TrashIcon}
                 alt={"delete"}
               />
-              <h1>{chosenContactRef.name}</h1>{" "}
+              <h1>{chosenContact.name}</h1>{" "}
               <img
-                onClick={() => setChosenContact(null)}
+                onClick={() => setChosenId(null)}
                 className={"button-icon"}
                 src={xMarkIcon}
                 alt="deleteimg"
@@ -62,24 +62,24 @@ const OneContact = () => {
               >
                 <ProfilePicture
                   photoURL={
-                    chosenContactRef.photoURL === null
+                    chosenContact.photoURL === null
                       ? undefined
-                      : chosenContactRef.photoURL
+                      : chosenContact.photoURL
                   }
                 />
                 <button onClick={() => setEditMode(!editMode)}>Upravit</button>
               </div>
 
               <div style={{ flex: 1 }}>
-                <p>{chosenContactRef.name}</p>
-                {chosenContactRef.emails.map((email, index) => (
+                <p>{chosenContact.name}</p>
+                {chosenContact.emails.map((email, index) => (
                   <p key={index} style={{ color: "lightblue" }}>
                     <a href={`mailto:${email}`}>{email}</a>
                   </p>
                 ))}
                 <p style={{}}>
                   Labels:{" "}
-                  {chosenContactRef.labels
+                  {chosenContact.labels
                     ?.split("#")
                     .map(
                       (label, index) =>
@@ -90,10 +90,10 @@ const OneContact = () => {
                 </p>
 
                 <div>
-                  <p>Street: {chosenContactRef.address.street}</p>
-                  <p>City: {chosenContactRef.address.city}</p>
-                  <p>State: {chosenContactRef.address.state}</p>
-                  <p>Postal Code: {chosenContactRef.address.postalCode}</p>
+                  <p>Street: {chosenContact.address.street}</p>
+                  <p>City: {chosenContact.address.city}</p>
+                  <p>State: {chosenContact.address.state}</p>
+                  <p>Postal Code: {chosenContact.address.postalCode}</p>
                 </div>
               </div>
             </div>
