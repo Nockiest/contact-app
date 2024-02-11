@@ -1,25 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+import ContactList from "./components/ContactList";
+import OneContact from "./components/OneContact";
+import Header from "./components/Header";
+import {  ContextProvider, useContactContext  } from "./Context";
+import { useMediaQuery } from "@mui/material";
 
 function App() {
+  const { chosenContactRef } = useContactContext();
+  const bigScreen = useMediaQuery('(min-width:800px)');
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <>
+    <ContextProvider>
+      <div className="App">
+        <Header />
+        <p style={{color:'black'}}>Screen: {bigScreen ? 'Big' : 'Small'}, Contact: {chosenContactRef?.name || 'No contact selected'}</p>
+        <div
+          style={{
+            maxWidth: "1000px",
+            margin: "0px auto",
+            display: "flex",
+            justifyContent: "center",
+            border: "1px solid",
+            height: '100%'
+          }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+
+          {bigScreen? <>
+            <OneContact />
+          <ContactList />
+          </> : <>
+            {chosenContactRef? <OneContact />:  <ContactList />}
+          </>}
+
+        </div>
+      </div>
+    </ContextProvider>
+    </>
+
   );
 }
 
