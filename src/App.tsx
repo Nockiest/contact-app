@@ -3,18 +3,17 @@ import "./App.css";
 import ContactList from "./components/ContactList";
 import OneContact from "./components/OneContact";
 import Header from "./components/Header";
-import {  ContextProvider, useContactContext  } from "./Context";
+import {   useContactContext  } from "./Context";
 import { useMediaQuery } from "@mui/material";
 
 function App() {
   const { chosenContactId } = useContactContext();
   const bigScreen = useMediaQuery('(min-width:800px)');
   return (
-    <>
-    <ContextProvider>
+
+
       <div className="App">
         <Header />
-        <p style={{color:'black'}}>Screen: {bigScreen ? 'Big' : 'Small'}, Contact: {chosenContactId  || 'No contact selected'}</p>
         <div
           style={{
             maxWidth: "1000px",
@@ -27,18 +26,19 @@ function App() {
         >
 
           {bigScreen? <>
-            <OneContact />
-          <ContactList />
+           <div style={{ width: "66%" }}> <OneContact /></div>
+           <div style={{ width: "33%" }}>  <ContactList /></div>
+
           </> : <>
-            {chosenContactId? <OneContact />:  <ContactList />}
+           <div>{chosenContactId? <OneContact />:  <ContactList />}</div>
           </>}
 
         </div>
       </div>
-    </ContextProvider>
-    </>
+
 
   );
 }
 
 export default App;
+        /* <p style={{color:'black'}}>Screen: {bigScreen ? 'Big' : 'Small'}, Contact: {chosenContactId  || 'No contact selected'}</p> */

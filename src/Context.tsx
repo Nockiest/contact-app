@@ -1,7 +1,5 @@
-import { useContext, createContext, ReactNode, useState, useRef, useEffect } from "react";
+import { useContext, createContext, ReactNode, useState,   useEffect } from "react";
 import { Contact, Id } from "./types/types";
-// import {v4 as uuidv4} from 'uuid';
-// import mockContacts from './mockContacts'
 import { db } from './firebase'; // Import Firestore from your firebase.js file
 
 import {   collection, getDocs  } from 'firebase/firestore'; // Import necessary Firestore functions
@@ -13,6 +11,8 @@ interface ContactContextType {
   setContacts: (value: any) => void;
   query: string;
   setQuery: (value: string) => void;
+  editMode: boolean;
+  setEditMode: (value: boolean) => void;
 }
 
 export const ContactContext = createContext<ContactContextType>({
@@ -22,13 +22,15 @@ export const ContactContext = createContext<ContactContextType>({
   setContacts: () => {},
   query: '',
   setQuery: () => {},
+  editMode: false,
+  setEditMode: () => {},
 });
 
 export const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [query, setQuery] = useState<string>('');
   const [chosenContactId, setChosenId] = useState<Id | null>(null);
   const [contacts, setContacts] = useState<Array<Contact>>([]);
-
+  const [editMode, setEditMode] = useState<boolean>(false);
   useEffect(() => {
     const fetchDataAndAddMockContacts = async () => {
       try {
@@ -56,7 +58,7 @@ export const ContextProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   return (
-    <ContactContext.Provider value={{ chosenContactId, setChosenId, contacts, setContacts, query, setQuery }}>
+    <ContactContext.Provider value={{editMode, setEditMode, chosenContactId, setChosenId, contacts, setContacts, query, setQuery }}>
       {children}
     </ContactContext.Provider>
   );

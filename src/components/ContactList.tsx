@@ -1,96 +1,81 @@
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
 import { useContactContext } from "../Context";
 import exportIcon from "../assets/export.svg";
-// import crossIcon from '../assets/cross.svg';
-// import exportIcon from '../assets/export.svg';
 import idCard from "../assets/id-card.svg";
 import AutocompleteSearchBar from "./SearchBar";
 import { Contact } from "../types/types";
 import { v4 as uuidv4 } from "uuid";
 import AlphabetColumn from "./AlphabetColumn";
-import { addDoc, collection } from "firebase/firestore";
+import { addContactsToFirestore, newContact } from "../utils";
 import mockContacts from "../mockContacts";
+import { collection } from "firebase/firestore";
 import { db } from "../firebase";
-const ContactList = () => {
 
-  const { contacts,  setContacts, query, setChosenId } = useContactContext();
+const ContactList = () => {
+  const { contacts, setContacts, query, setChosenId, setEditMode } = useContactContext();
   const [showContacts, setShowContacts] = useState<boolean>(true);
   const [selectedLetter, setSelectedLetter] = useState<string>("");
   const contactPreviewRef = useRef<HTMLDivElement>(null);
   const addContact = () => {
-    const newContact: Omit<Contact, "id"> = {
-      name: "Andrew Lukes",
-      phoneNumbers: ["1234567890", "9876543210"],
-      labels: "#Developer #Suprise",
-      emails: ["ondralukes06@seznam.cz"],
-      photoURL: "https://example.com/johndoe.jpg",
-      address: {
-        street: "Medkova 54",
-        city: "Praha",
-        state: "Cze",
-        postalCode: "12345" // Add the postal code here
-      },
-    };
+    //newContact
+    const createdContacct:Contact =  {  ...newContact, id: uuidv4() }
     setContacts((prev: Contact[]) => [
       ...prev,
-      { ...newContact, id: uuidv4() },
+      createdContacct,
     ]);
+    setChosenId(createdContacct.id)
+    setEditMode(true)
   };
-
 
   useEffect(() => {
     const contactPreview = contactPreviewRef.current;
-    console.log(contactPreview,selectedLetter)
+    console.log(contactPreview, selectedLetter);
     if (!contactPreview) return;
 
-    const contactChildren = contactPreview.querySelectorAll('.contact-preview > div');
+    const contactChildren = contactPreview.querySelectorAll(
+      ".contact-preview > div"
+    );
 
     if (!contactChildren) return;
 
-    const sortedContacts = Array.from(contactChildren).sort((a:  Element, b:  Element) => {
-      if (!a.textContent || !b.textContent){ return 1000000 }
-      const distanceA = Math.abs(a.textContent.charCodeAt(0) - selectedLetter.charCodeAt(0));
-      const distanceB = Math.abs(b.textContent.charCodeAt(0) - selectedLetter.charCodeAt(0));
-      return distanceA - distanceB;
-    });
-    if (  sortedContacts[0]){
-      sortedContacts[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const sortedContacts = Array.from(contactChildren).sort(
+      (a: Element, b: Element) => {
+        if (!a.textContent || !b.textContent) {
+          return 1000000;
+        }
+        const distanceA = Math.abs(
+          a.textContent.charCodeAt(0) - selectedLetter.charCodeAt(0)
+        );
+        const distanceB = Math.abs(
+          b.textContent.charCodeAt(0) - selectedLetter.charCodeAt(0)
+        );
+        return distanceA - distanceB;
+      }
+    );
+    if (sortedContacts[0]) {
+      sortedContacts[0].scrollIntoView({ behavior: "smooth", block: "start" });
     }
-
   }, [selectedLetter]);
 
-const sortedContacts = [...contacts]
-  .filter(contact => contact.name.toLowerCase().includes(query.trim().toLowerCase()))
-  .sort((a, b) => a.name.localeCompare(b.name));
+  const sortedContacts = [...contacts]
+    .filter((contact) =>
+      contact.name.toLowerCase().includes(query.trim().toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-   const addMockContactsToFirestore = async () => {
-    try {
-      const contactsCollection = collection(db, 'Contacts'); // Reference to the "Contacts" collection
-
-      // Iterate over the mockContacts array and add each contact as a document in the "Contacts" collection
-      await Promise.all(mockContacts.map(async (contact) => {
-        await addDoc(contactsCollection, contact); // Use addDoc instead of setDoc
-      }));
-
-      console.log('Mock contacts added to Firestore successfully!');
-    } catch (error) {
-      console.error('Error adding mock contacts to Firestore:', error);
-    }
-  };
-
-  //  addMockContactsToFirestore();
   return (
     <div
-      style={{
-        width: '33%'
-      }}
+    style={{
+
+      margin: "15px 1rem",
+    }}
     >
-      <div>
+
         <div
           style={{
             display: "flex",
             justifyContent: "center",
-            padding: "auto 0",
+            padding: "auto 1rem",
           }}
         >
           <AutocompleteSearchBar />
@@ -106,12 +91,12 @@ const sortedContacts = [...contacts]
             Delete All
           </button>
         </div>
-      </div>
+
 
       <div style={{ display: "flex", height: "300px", width: "100%" }}>
         <div
           className={"contact-preview"}
-          style={{ width:'80%', overflowY: "scroll",boxSizing: "border-box"  }}
+          style={{ width: "80%", overflowY: "scroll", boxSizing: "border-box" }}
           ref={contactPreviewRef}
         >
           {showContacts &&
@@ -119,8 +104,11 @@ const sortedContacts = [...contacts]
               <div
                 className={contact.name}
                 key={contact.name}
-                onClick={() => {setChosenId(contact.id)} }
-                style={{cursor:'pointer'}}
+                onClick={() => {
+                  setChosenId(contact.id);
+                  setEditMode(false)
+                }}
+                style={{ cursor: "pointer" }}
               >
                 <img className={"button-icon"} src={idCard} alt="id icon" />
                 {contact.name}
@@ -145,15 +133,29 @@ const sortedContacts = [...contacts]
           Přidat Kontakt
         </button>
 
-        <div className="two-column ">
-          <button className="action-button" style = {{ display: 'flex', alignItems:'center', justifyContent:'center'}}>
+        <div className="two-column">
+          <button
+            className="action-button"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <img className={"button-icon"} src={exportIcon} alt="export icon" />
-             Exportovat
+            Exportovat
           </button>
           <button className="action-button">Importovat</button>
         </div>
-        <div className="two-column ">
-          <button className="action-button" onClick={() =>{addMockContactsToFirestore()}} >Nahrát Na Server</button>
+        <div className="two-column">
+          <button
+            className="action-button"
+            onClick={() => {
+              addContactsToFirestore(mockContacts, collection(db, "Contacts"));
+            }}
+          >
+            Nahrát Na Server
+          </button>
           <button className="action-button">Stáhnout Ze Serveru</button>
         </div>
       </div>

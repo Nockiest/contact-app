@@ -1,26 +1,32 @@
-import { useState } from "react";
 import { useContactContext } from "../Context";
 import xMarkIcon from "../assets/xmark.svg";
 import ProfilePicture from "./ProfilePicture";
 import ContactEditor from "./ContactEditor";
 import TrashIcon from "../assets/trash.svg";
-import { deleteObjectFromArray } from "../utils";
+import { deleteObjectFromArray, removeFromFirebase } from "../utils";
 import { Id } from "../types/types";
 const OneContact = () => {
-  const { setChosenId,  chosenContactId, setContacts, contacts } =
-    useContactContext();
-  const [editMode, setEditMode] = useState<boolean>(false);
+  const {
+    setChosenId,
+    chosenContactId,
+    setContacts,
+    contacts,
+    editMode,
+    setEditMode,
+  } = useContactContext();
 
   const deleteContact = (id: Id) => {
     if (chosenContactId) {
       setContacts(deleteObjectFromArray(id, contacts));
+      removeFromFirebase(chosenContactId);
       setChosenId(null);
+      alert('contact deleted from list')
     }
   };
-  const chosenContact = contacts.find(obj => obj.id === chosenContactId);
+  const chosenContact = contacts.find((obj) => obj.id === chosenContactId);
   return (
-    <div style={{ width: "66%" }}>
-      {chosenContactId&& chosenContact? (
+    <div>
+      {chosenContactId && chosenContact ? (
         editMode ? (
           <ContactEditor
             initialContact={chosenContact}
@@ -67,7 +73,13 @@ const OneContact = () => {
                       : chosenContact.photoURL
                   }
                 />
-                <button onClick={() => setEditMode(!editMode)}>Upravit</button>
+                <button
+                  className={"action-button"}
+                  style={{ margin: "5px 2rem", width: "80%" }}
+                  onClick={() => setEditMode(!editMode)}
+                >
+                  Upravit
+                </button>
               </div>
 
               <div style={{ flex: 1 }}>
@@ -93,7 +105,8 @@ const OneContact = () => {
                   <p>Street: {chosenContact.address.street}</p>
                   <p>City: {chosenContact.address.city}</p>
                   <p>State: {chosenContact.address.state}</p>
-                  <p>Postal Code: {chosenContact.address.postalCode}</p>
+
+                  <p>Postal Code:  {chosenContact.address.postalCode?.slice(0, 3)}{" "} {chosenContact.address.postalCode?.slice(3)}</p>
                 </div>
               </div>
             </div>

@@ -9,7 +9,7 @@ type ProfilePictureProps = {
 
 const ProfilePicture: React.FC<ProfilePictureProps> = ({ photoURL }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const placeholderUrl = '../assets/placeholder.png'
+  // const placeholderUrl = '../assets/placeholder.png'
   useEffect(() => {
     const fetchImage = async () => {
       // Check if photoURL is a Firebase storage path

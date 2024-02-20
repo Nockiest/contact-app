@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@stylexjs/babel-plugin": "^0.5.1",
-    "@stylexjs/eslint-plugin": "^0.5.1"
+    "@stylexjs/eslint-plugin": "^0.5.1",
+    "@types/validator": "^13.11.9"
   }
 }

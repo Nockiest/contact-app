@@ -117,3 +117,18 @@ label {
   cursor: pointer;
   margin-top: 10px;
   }
+
+  .delete-button{
+  background-color: #ff0000; /* Red background color */
+  color: #ffffff; /* White text color */
+  border: none; /* No border */
+  padding: 8px 12px; /* Padding */
+  cursor: pointer; /* Cursor style on hover */
+  border-radius: 4px; /* Rounded corners */
+  margin-left: 8px; /* Add some space between the input field and the button */
+  margin: 1rem
+}
+
+  .delete-button :hover  {
+    background: "#efefef"
+  }

@@ -1,10 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, {  useState } from "react";
 import { Contact, Id } from "../types/types";
 import { useContactContext } from "../Context";
 import { db, storage } from "../firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { doc, updateDoc } from "firebase/firestore";
-
+import { addDoc, collection, doc, getDoc,   updateDoc } from "firebase/firestore";
+import {isEmail} from 'validator';
+import DeleteButton from "./DeleteButton";
 type ContactFormProps = {
   initialContact: Contact;
   setEditMode: (value: any) => void;
@@ -23,7 +24,7 @@ const ContactEditor: React.FC<ContactFormProps> = ({
   const { contacts, setContacts } = useContactContext();
   const phoneRegex =
     /^(\+\d{1,2}\s?)?1?-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
-  const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/; // this is unsafe
+  // const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/; // this is unsafe
   const labelsRegex = /^(#[\w/-]+\s?)*$/;
   const [imageUpload, setImageUpload] = useState<File | undefined>(undefined); // Change the state type to File | null
 
@@ -50,8 +51,7 @@ const ContactEditor: React.FC<ContactFormProps> = ({
         const field = name.startsWith("phoneNumbers")
           ? "phoneNumbers"
           : "emails";
-        const newValue = value.trim(); // Remove leading/trailing spaces
-
+        const newValue = value.trim();
         setEditedContact((prevState) => ({
           ...prevState,
           [field]: prevState[field].map((item, idx) =>
@@ -70,7 +70,7 @@ const ContactEditor: React.FC<ContactFormProps> = ({
           ...prevState,
           address: {
             ...prevState.address,
-            [addressField]: value.trim(), // Remove leading/trailing spaces
+            [addressField]: value.trim(),
           },
         }));
       } else {
@@ -86,12 +86,12 @@ const ContactEditor: React.FC<ContactFormProps> = ({
 
   const uploadFile = (postId: string) => {
     if (!imageUpload) return;
-
+    console.log('uploading file')
     const imageRef = ref(storage, `images/${postId}`);
 
     uploadBytes(imageRef, imageUpload).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((url) => {
-        console.log(url);
+        console.log(url, editedContact.id);
       });
     });
   };
@@ -103,7 +103,8 @@ const ContactEditor: React.FC<ContactFormProps> = ({
     const { postalCode } = editedContact.address;
 
     editedContact.emails.forEach((email, index) => {
-      if (!emailRegex.test(email)) {
+
+      if (!isEmail(email)) {
         invalidEntries.push(`Email ${index + 1}`);
       }
     });
@@ -136,11 +137,22 @@ const ContactEditor: React.FC<ContactFormProps> = ({
 
     try {
       const contactRef = doc(db, 'Contacts', editedContact.id.toString());
-      await updateDoc(contactRef, editedContact);
-      console.log('Contact updated successfully in Firestore');
+      const docSnap = await getDoc(contactRef);
+
+      if (docSnap.exists()) {
+        await updateDoc(contactRef, editedContact);
+        console.log('Contact updated successfully in Firestore');
+      } else {
+        await addDoc(collection(db, 'Contacts'), editedContact);
+        console.log('New contact created successfully in Firestore');
+      }
+
+      alert(`contact uploaded ${editedContact.name} sucesfully`)
+      setEditMode(false)
+
     } catch (error) {
-      console.error('Error updating contact in Firestore:', error);
-      // Handle error...
+      console.error('Error updating/creating contact in Firestore:', error);
+      alert(`problem occured when uploading fiel ${error}`)
       return;
     }
 
@@ -170,23 +182,33 @@ const ContactEditor: React.FC<ContactFormProps> = ({
           type="text"
           name="name"
           value={editedContact.name}
-          onChange={(e )=> handleChange({e})}
+          onChange={(e) => handleChange({ e })}
         />
       </label>
 
       {/* Add similar input fields for other properties */}
       {editedContact.phoneNumbers.map((phoneNumber, index) => (
-        <label key={index}>
-          Phone Number {index + 1}:
-          <input
-            type="text"
-            name={`phoneNumbers${index}`}
-            value={phoneNumber}
-            onChange={(e) => handleChange({ e, index })}
-          />
-        </label>
+        <div style={{display:'flex'}} key={index}>
+          <label>
+            Phone Number {index + 1}:
+            <input
+              type="text"
+              name={`phoneNumbers${index}`}
+              value={phoneNumber}
+              onChange={(e) => handleChange({ e, index })}
+            />
+          </label>
+          <DeleteButton  onClick={() => {
+              setEditedContact((prevState) => ({
+                ...prevState,
+                phoneNumbers: prevState.phoneNumbers.filter((_, i) => i !== index),
+              }));
+            }} />
+
+        </div>
       ))}
-      <button
+      {/* Add button to add a new phone number */}
+    {editedContact.phoneNumbers.length < 3 &&  <button
         type="button"
         onClick={() =>
           setEditedContact((prevState) => ({
@@ -196,19 +218,30 @@ const ContactEditor: React.FC<ContactFormProps> = ({
         }
       >
         Add Phone Number
-      </button>
+      </button>}
+
       {editedContact.emails.map((email, index) => (
-        <label key={index}>
-          Email {index + 1}:
-          <input
-            type="text"
-            name={`emails${index}`}
-            value={email}
-            onChange={(e) => handleChange({ e, index })}
-          />
-        </label>
+         <div style={{display:'flex'}} key={index}>
+          <label>
+            Email {index + 1}:
+            <input
+              type="text"
+              name={`emails${index}`}
+              value={email}
+              onChange={(e) => handleChange({ e, index })}
+            />
+          </label>
+          <DeleteButton  onClick={() => {
+              setEditedContact((prevState) => ({
+                ...prevState,
+                emails: prevState.emails.filter((_, i) => i !== index),
+              }));
+            }} />
+
+        </div>
       ))}
-      <button
+
+     {editedContact.emails.length < 3 &&  <button
         type="button"
         onClick={() =>
           setEditedContact((prevState) => ({
@@ -218,8 +251,7 @@ const ContactEditor: React.FC<ContactFormProps> = ({
         }
       >
         Add Email
-      </button>
-
+      </button>}
       <label>
         Labels:
         <input
@@ -295,6 +327,7 @@ const ContactEditor: React.FC<ContactFormProps> = ({
       <button className={"action-button"} type="submit">
         Submit
       </button>
+
     </form>
   );
 };
